@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="위클리민">
 <meta name="theme-color" content="#FAFAF9">
+<link rel="apple-touch-icon" href="weeklymin.png">
+<link rel="icon" href="weeklymin.png">
 <title>weeklymin</title>
 <link rel="stylesheet" as="style" crossorigin
   href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
@@ -32,6 +35,8 @@
     --today:#111111;
     --today-tint:rgba(17,17,17,0.06);
     --danger:#B4361B;
+    --sat:#2E70A8;
+    --sun:#B4361B;
     --shadow-1: 0 1px 2px rgba(17,17,17,0.04), 0 4px 14px rgba(17,17,17,0.04);
     --shadow-2: 0 8px 30px rgba(17,17,17,0.10);
     --radius-cell: 14px;
@@ -56,6 +61,8 @@
     --today:#CF4500;
     --today-tint:rgba(207,69,0,0.10);
     --danger:#B4361B;
+    --sat:#2E70A8;
+    --sun:#B4361B;
   }
   html[data-palette="paper"]{
     --canvas:#F5F1EA;
@@ -74,6 +81,8 @@
     --today:#3A5A40;
     --today-tint:rgba(58,90,64,0.10);
     --danger:#9E3B1B;
+    --sat:#2E6E8E;
+    --sun:#9E3B1B;
   }
   html[data-palette="pastel"]{
     --canvas:#F6F3F8;
@@ -92,6 +101,8 @@
     --today:#7C6BE8;
     --today-tint:rgba(124,107,232,0.10);
     --danger:#D64B6E;
+    --sat:#5A7FD6;
+    --sun:#D64B6E;
   }
   html[data-palette="dark"]{
     --canvas:#0F0F0E;
@@ -110,6 +121,8 @@
     --today:#F5F4F1;
     --today-tint:rgba(245,244,241,0.08);
     --danger:#E86C4A;
+    --sat:#6FA8DC;
+    --sun:#E8896C;
   }
 
   /* Cell shape variants */
@@ -119,6 +132,7 @@
 
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
+  html{ height:100%; }
   body{
     background:var(--canvas);
     color:var(--ink);
@@ -126,9 +140,12 @@
     font-weight:450;
     font-size:calc(15px * var(--font-scale));
     -webkit-font-smoothing:antialiased;
-    padding:0 0 56px;
-    min-height:100vh;
     letter-spacing:-0.01em;
+    height:100vh;
+    height:100dvh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
   }
   button{font-family:inherit; letter-spacing:inherit;}
   input,textarea{font-family:inherit; letter-spacing:inherit;}
@@ -138,6 +155,9 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:22px 22px 4px;
     max-width:900px; margin:0 auto;
+    width:100%;
+    box-sizing:border-box;
+    flex:none;
   }
   .brand{
     display:flex; align-items:center; gap:9px;
@@ -171,8 +191,11 @@
   .week-nav{
     position:relative;
     display:flex; align-items:center; justify-content:center; gap:6px;
-    padding:14px 22px 18px;
+    padding:14px 22px 10px;
     max-width:900px; margin:0 auto;
+    width:100%;
+    box-sizing:border-box;
+    flex:none;
   }
   .week-nav-arrow{
     width:34px; height:34px; border-radius:50%;
@@ -204,18 +227,62 @@
   .week-pill .range-sub{
     font-size:11.5px; opacity:0.6; font-weight:500;
   }
+  .week-tools{
+    display:flex; align-items:center; justify-content:center;
+    padding:0 22px;
+    margin-bottom:8px;
+    min-height:0;
+  }
   .jump-today-btn{
     display:none; align-items:center; gap:5px;
-    position:absolute; right:22px; top:50%; transform:translateY(-50%);
     background:var(--surface); border:1px solid var(--hairline-strong);
     color:var(--ink); font-weight:600; font-size:12px;
-    padding:7px 12px; border-radius:var(--radius-pill); cursor:pointer;
+    padding:7px 14px; border-radius:var(--radius-pill); cursor:pointer;
     white-space:nowrap;
   }
   .jump-today-btn.show{ display:inline-flex; }
   .jump-today-btn svg{ width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;}
+  .holiday-banner{
+    display:none;
+    flex-wrap:wrap; align-items:center; justify-content:center;
+    gap:6px 10px;
+    max-width:900px; margin:0 auto 12px;
+    padding:0 22px;
+    font-size:12px; font-weight:600; color:var(--sun);
+    text-align:center;
+  }
+  .holiday-banner.show{ display:flex; }
+  .holiday-banner .holiday-item{
+    display:inline-flex; align-items:center; gap:5px;
+    white-space:nowrap;
+  }
+  .holiday-banner .holiday-item::before{
+    content:''; width:5px; height:5px; border-radius:50%;
+    background:var(--sun); flex:none;
+  }
+  .holiday-banner .holiday-date{
+    color:var(--muted); font-weight:500;
+  }
+  .date-btn-wrap{
+    position:relative;
+  }
   #datePicker{
-    position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    opacity:0;
+    border:0; padding:0; margin:0;
+    cursor:pointer;
+    -webkit-appearance:none; appearance:none;
+  }
+
+  /* ============ Vertical scroll region (below fixed header) ============ */
+  .app-scroll{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:calc(56px + env(safe-area-inset-bottom));
   }
 
   /* ============ Grid ============ */
@@ -225,12 +292,10 @@
     max-width:900px; margin:0 auto;
   }
   .cat-col{
-    flex:none; width:88px;
+    flex:none; width:64px;
     display:flex; flex-direction:column; gap:6px;
-    transition:width .18s ease;
     z-index:2;
   }
-  .grid-wrap.scrolled .cat-col{ width:48px; }
   .days-scroll{
     flex:1; min-width:0;
     overflow-x:auto; overflow-y:hidden;
@@ -256,6 +321,7 @@
     text-transform:uppercase;
     gap:1px;
     border-radius:10px;
+    position:relative;
   }
   .head-cell .day-num{
     font-size:13px; color:var(--ink-soft); font-weight:600; letter-spacing:-0.02em; text-transform:none;
@@ -265,8 +331,24 @@
     color:var(--accent-contrast);
   }
   .head-cell.today .day-num{ color:var(--accent-contrast); }
-  .head-cell.weekend .day-num{ color:var(--muted); }
-  .head-cell.today.weekend .day-num{ color:var(--accent-contrast); }
+  .head-cell.sat{ color:var(--sat); }
+  .head-cell.sat .day-num{ color:var(--sat); }
+  .head-cell.sun{ color:var(--sun); }
+  .head-cell.sun .day-num{ color:var(--sun); }
+  .head-cell.today.sat,
+  .head-cell.today.sun{ color:var(--accent-contrast); }
+  .head-cell.today.sat .day-num,
+  .head-cell.today.sun .day-num{ color:var(--accent-contrast); }
+  .head-cell.holiday{ color:var(--sun); }
+  .head-cell.holiday .day-num{ color:var(--sun); }
+  .head-cell.today.holiday{ color:var(--accent-contrast); }
+  .head-cell.today.holiday .day-num{ color:var(--accent-contrast); }
+  .holiday-dot{
+    position:absolute; top:3px; right:8px;
+    width:4px; height:4px; border-radius:50%;
+    background:var(--sun);
+  }
+  .head-cell.today .holiday-dot{ background:var(--accent-contrast); }
   .head-corner{ height:36px; flex:none; }
 
   .cat-cell{
@@ -309,10 +391,6 @@
     font-weight:600; font-size:12.5px; letter-spacing:-0.02em;
     color:var(--ink);
   }
-  .grid-wrap.scrolled .cat-cell{ padding:6px 2px; gap:0; }
-  .grid-wrap.scrolled .cat-cell .cat-icon{ width:36px; height:36px; font-size:19px; }
-  .grid-wrap.scrolled .cat-cell .cat-name{ display:none; }
-  .grid-wrap.scrolled .cat-cell .cat-dot{ top:6px; right:6px; width:7px; height:7px; }
 
   /* Hide category icons if user prefers dot-only */
   html[data-cat-mode="dot"] .cat-cell .cat-icon{ display:none; }
@@ -337,7 +415,6 @@
     box-shadow: inset 0 0 0 1.5px var(--today);
   }
   .data-cell.weekend-col{
-    background:var(--surface-2);
   }
   .data-cell.filled-check{
     background:var(--check-fill);
@@ -378,7 +455,10 @@
   .progress-strip{
     max-width:900px; margin:6px auto 12px;
     padding:0 22px;
+    box-sizing:border-box;
+    width:100%;
     display:flex; align-items:center; justify-content:space-between; gap:14px;
+    flex:none;
   }
   .progress-strip .prog-label{
     font-size:12.5px; color:var(--muted); font-weight:500;
@@ -585,7 +665,8 @@
     content:''; position:absolute; inset:0;
     background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center/60% no-repeat;
   }
-  .custom-color-btn{
+  .custom-color-btn-wrap{
+    position:relative;
     display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%; margin:10px 0 4px;
     padding:11px 16px;
@@ -593,6 +674,13 @@
     border-radius:var(--radius-pill);
     font-weight:600; font-size:13.5px; color:var(--ink);
     cursor:pointer;
+  }
+  #customColorInput{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    opacity:0; border:0; padding:0; margin:0;
+    cursor:pointer;
+    -webkit-appearance:none; appearance:none;
   }
   .custom-color-swatch{
     width:18px; height:18px; border-radius:50%; flex:none;
@@ -707,6 +795,7 @@
     z-index:70;
   }
   .tweaks-fab.on{ display:flex; }
+  .tweaks-fab.hide-fab{ display:none !important; }
   .tweaks-fab svg{ width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
 
   .tweaks-panel{
@@ -763,10 +852,10 @@
   @media (orientation:landscape) and (max-height:520px){
     body{ padding-bottom:24px; }
     .topbar{ padding:12px 22px 4px; }
-    .week-nav{ padding:6px 22px 12px; }
+    .week-nav{ padding:6px 22px 6px; }
+    .week-tools{ margin-bottom:4px; }
     .grid-wrap{ padding:0 20px; gap:5px; }
-    .cat-col{ width:70px; gap:5px; }
-    .grid-wrap.scrolled .cat-col{ width:42px; }
+    .cat-col{ width:52px; gap:5px; }
     .days-inner{ gap:5px; }
     .days-row{ gap:5px; }
     .head-cell{ width:64px; height:30px; font-size:11px; border-radius:8px; }
@@ -785,8 +874,7 @@
     .head-cell{ height:42px; }
     .head-corner{ height:42px; }
     .cat-cell{ height:88px; }
-    .cat-col{ width:100px; }
-    .grid-wrap.scrolled .cat-col{ width:54px; }
+    .cat-col{ width:76px; }
     .grid-wrap{ padding:0 24px; gap:8px; }
     .days-inner{ gap:8px; }
     .days-row{ gap:8px; }
@@ -841,15 +929,18 @@
     <button class="week-nav-arrow" id="nextWeek" aria-label="다음 주">
       <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
     </button>
-    <button class="week-nav-arrow" id="openDatePicker" aria-label="날짜로 이동">
+    <div class="week-nav-arrow date-btn-wrap" aria-label="날짜로 이동">
       <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17"/><path d="M8 3v4"/><path d="M16 3v4"/></svg>
-    </button>
-    <input type="date" id="datePicker">
+      <input type="date" id="datePicker">
+    </div>
+  </div>
+  <div class="week-tools">
     <button class="jump-today-btn" id="jumpTodayBtn">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg>
       이번주
     </button>
   </div>
+  <div class="holiday-banner" id="holidayBanner"></div>
 
   <!-- Progress -->
   <div class="progress-strip" id="progressStrip">
@@ -858,14 +949,16 @@
     <div class="prog-pct" id="progPct">0%</div>
   </div>
 
-  <!-- Grid -->
-  <div class="grid-wrap" id="gridWrap">
-    <div class="cat-col" id="catCol"></div>
-    <div class="days-scroll" id="daysScroll">
-      <div class="days-inner" id="daysInner"></div>
+  <!-- Scrollable grid area (header above stays fixed) -->
+  <div class="app-scroll" id="appScroll">
+    <div class="grid-wrap" id="gridWrap">
+      <div class="cat-col" id="catCol"></div>
+      <div class="days-scroll" id="daysScroll">
+        <div class="days-inner" id="daysInner"></div>
+      </div>
     </div>
+    <div class="empty-hint">칸을 눌러 완료 체크 · 길게 눌러 사진·문구</div>
   </div>
-  <div class="empty-hint">칸을 눌러 완료 · 길게 눌러 사진 · 문구</div>
 
   <!-- Cell edit sheet -->
   <div class="overlay" id="cellOverlay">
@@ -941,11 +1034,11 @@
       <div class="sheet-title">색상 선택</div>
       <div class="sheet-sub">카테고리 도트와 히트맵에 사용돼요</div>
       <div class="color-grid" id="colorGrid"></div>
-      <button class="custom-color-btn" id="customColorBtn" type="button">
+      <div class="custom-color-btn-wrap">
         <span class="custom-color-swatch" id="customColorSwatch"></span>
         <span>원하는 색 직접 만들기</span>
-      </button>
-      <input type="color" id="customColorInput" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+        <input type="color" id="customColorInput">
+      </div>
       <div class="btn-row" style="margin-top:6px;">
         <button class="btn btn-ghost full" id="closeColorBtn">닫기</button>
       </div>
@@ -1034,6 +1127,33 @@
     /* deep */ '#1F1B15', '#0F4C5C', '#823038', '#37306B'
   ];
   const ICONS = ['🔖','📝','💪','📚','💧','🏃','😴','🍎','🎯','✅','🎨','🎵','💼','🧘','🌱','💰','🚭','🧹','☕','🌙','🌤','🚶','📖','🍽','🧠','❤️'];
+
+  // 대한민국 공휴일(2026년 기준, 대체공휴일 포함). 매년 날짜가 바뀌므로
+  // (특히 설날·추석 등 음력 명절) 해가 바뀌면 이 목록을 직접 갱신해야 해요.
+  const HOLIDAYS_KR = {
+    '2026-01-01': '신정',
+    '2026-02-16': '설날 연휴',
+    '2026-02-17': '설날',
+    '2026-02-18': '설날 연휴',
+    '2026-03-01': '삼일절',
+    '2026-03-02': '대체공휴일(삼일절)',
+    '2026-05-01': '노동절',
+    '2026-05-05': '어린이날',
+    '2026-05-24': '부처님오신날',
+    '2026-05-25': '대체공휴일(부처님오신날)',
+    '2026-06-06': '현충일',
+    '2026-07-17': '제헌절',
+    '2026-08-15': '광복절',
+    '2026-08-17': '대체공휴일(광복절)',
+    '2026-09-24': '추석 연휴',
+    '2026-09-25': '추석',
+    '2026-09-26': '추석 연휴',
+    '2026-10-03': '개천절',
+    '2026-10-05': '대체공휴일(개천절)',
+    '2026-10-09': '한글날',
+    '2026-12-25': '성탄절'
+  };
+
   const PALETTES = [
     { id:'mono',   name:'Mono',   swatches:['#FAFAF9','#111111','#7A7874'] },
     { id:'beige',  name:'Beige',  swatches:['#F3F0EA','#1F1B15','#CF4500'] },
@@ -1169,12 +1289,28 @@
     return { year, month: month+1, weekNum };
   }
 
-  function weekRangeText(start){
-    const end = new Date(start); end.setDate(end.getDate()+6);
-    const sm = start.getMonth()+1, sd = start.getDate();
-    const em = end.getMonth()+1, ed = end.getDate();
-    if(sm === em) return `${sm}.${sd}–${ed}`;
-    return `${sm}.${sd}–${em}.${ed}`;
+  const WEEKDAY_KR = ['일','월','화','수','목','금','토'];
+
+  function renderHolidayBanner(){
+    const banner = document.getElementById('holidayBanner');
+    const items = [];
+    for(let i = 0; i < 7; i++){
+      const d = new Date(currentWeekStart);
+      d.setDate(d.getDate() + i);
+      const name = HOLIDAYS_KR[isoDate(d)];
+      if(name){
+        items.push(
+          `<span class="holiday-item"><span class="holiday-date">${d.getMonth()+1}/${d.getDate()}(${WEEKDAY_KR[d.getDay()]})</span>${escapeHtml(name)}</span>`
+        );
+      }
+    }
+    if(items.length){
+      banner.innerHTML = items.join('');
+      banner.classList.add('show');
+    }else{
+      banner.innerHTML = '';
+      banner.classList.remove('show');
+    }
   }
 
   function renderWeekLabel(){
@@ -1183,9 +1319,10 @@
     const isThisWeek = isoDate(currentWeekStart) === isoDate(realWeekStart);
     const label = document.getElementById('weekLabel');
     label.innerHTML =
-      `${info.year}년 ${info.month}월 ${info.weekNum}주차 <span class="range-sub">${weekRangeText(currentWeekStart)}</span>` +
+      `${info.year}년 ${info.month}월 ${info.weekNum}주차` +
       (isThisWeek ? ' <span class="this-week-badge">NOW</span>' : '');
     document.getElementById('jumpTodayBtn').classList.toggle('show', !isThisWeek);
+    renderHolidayBanner();
   }
 
   // ============ Entries model ============
@@ -1230,12 +1367,16 @@
     labels.forEach((label, i) => {
       const cellDate = new Date(currentWeekStart);
       cellDate.setDate(cellDate.getDate() + i);
-      const isToday = isoDate(cellDate) === todayIso;
+      const dateIso = isoDate(cellDate);
+      const isToday = dateIso === todayIso;
       const dayNum = cellDate.getDate();
-      const isWeekend = (label === '토' || label === '일');
+      const weekendClass = label === '토' ? ' sat' : (label === '일' ? ' sun' : '');
+      const holidayName = HOLIDAYS_KR[dateIso];
       const h = document.createElement('div');
-      h.className = 'head-cell' + (isToday ? ' today' : '') + (isWeekend ? ' weekend' : '');
-      h.innerHTML = `<span>${label}</span><span class="day-num">${dayNum}</span>`;
+      h.className = 'head-cell' + (isToday ? ' today' : '') + weekendClass + (holidayName ? ' holiday' : '');
+      if(holidayName) h.title = holidayName;
+      h.innerHTML = `<span>${label}</span><span class="day-num">${dayNum}</span>` +
+        (holidayName ? '<span class="holiday-dot"></span>' : '');
       headRow.appendChild(h);
     });
     daysInner.appendChild(headRow);
@@ -1274,8 +1415,6 @@
         }else if(done){
           cellDiv.classList.add('filled-check');
           cellDiv.style.setProperty('--check-fill', cat.color);
-          cellDiv.style.setProperty('--check-mark', '#fff');
-          cellDiv.innerHTML = `<svg class="check-mark" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`;
         }else{
           cellDiv.innerHTML = '';
         }
@@ -1304,15 +1443,17 @@
     return div.innerHTML;
   }
 
-  // ============ Cell interactions: tap toggle, long press = sheet ============
+  // ============ Cell interactions: tap = open sheet, long press = toggle check ============
   const LONG_PRESS_MS = 380;
   function attachCellInteractions(cellDiv, cat, dateIso, dayIdx){
     let pressTimer = null;
     let longFired = false;
+    let moved = false;
     let startX = 0, startY = 0;
 
     const start = (ev) => {
       longFired = false;
+      moved = false;
       const pt = ev.touches ? ev.touches[0] : ev;
       startX = pt.clientX; startY = pt.clientY;
       cellDiv.classList.add('pressing');
@@ -1324,8 +1465,10 @@
       }, LONG_PRESS_MS);
     };
     const move = (ev) => {
+      if(moved) return;
       const pt = ev.touches ? ev.touches[0] : ev;
       if(Math.abs(pt.clientX - startX) > 8 || Math.abs(pt.clientY - startY) > 8){
+        moved = true;
         clearTimeout(pressTimer);
         cellDiv.classList.remove('pressing');
       }
@@ -1333,11 +1476,12 @@
     const end = (ev) => {
       clearTimeout(pressTimer);
       cellDiv.classList.remove('pressing');
-      if(!longFired){
+      if(!longFired && !moved){
         toggleDone(cat, dateIso);
       }
     };
     const cancel = () => {
+      moved = true;
       clearTimeout(pressTimer);
       cellDiv.classList.remove('pressing');
     };
@@ -1347,14 +1491,18 @@
     cellDiv.addEventListener('touchend', end);
     cellDiv.addEventListener('touchcancel', cancel);
 
-    // Pointer/mouse fallback
-    cellDiv.addEventListener('mousedown', start);
-    cellDiv.addEventListener('mousemove', move);
-    document.addEventListener('mouseup', function once(ev){
-      if(pressTimer !== null){ end(ev); }
-      document.removeEventListener('mouseup', once);
+    // Pointer/mouse fallback (desktop)
+    cellDiv.addEventListener('mousedown', (ev) => {
+      start(ev);
+      const onMove = (mv) => move(mv);
+      const onUp = (up) => {
+        end(up);
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
     });
-    cellDiv.addEventListener('mouseleave', cancel);
     // Prevent context menu on long-press desktop
     cellDiv.addEventListener('contextmenu', (e) => e.preventDefault());
   }
@@ -1363,7 +1511,7 @@
     const key = entryKey(cat.id, dateIso);
     const cur = state.entries[key];
     if(cur && (cur.photo || cur.text)){
-      // If there's rich content, tapping opens sheet instead of toggling
+      // If there's rich content, tapping opens the sheet instead of toggling
       const idx = currentDayLabels().findIndex((_,i) => {
         const d = new Date(currentWeekStart); d.setDate(d.getDate()+i);
         return isoDate(d) === dateIso;
@@ -1375,7 +1523,7 @@
       delete state.entries[key];
     }else{
       state.entries[key] = { done:true, photo:null, text:null };
-      if(navigator.vibrate) navigator.vibrate(8);
+      if(navigator.vibrate) navigator.vibrate(10);
     }
     saveState(true);
     renderGrid();
@@ -1510,11 +1658,9 @@
     renderWeekLabel(); renderGrid();
   });
   const datePicker = document.getElementById('datePicker');
-  document.getElementById('openDatePicker').addEventListener('click', () => {
-    datePicker.value = isoDate(currentWeekStart);
-    if(datePicker.showPicker){ datePicker.showPicker(); }
-    else{ datePicker.focus(); datePicker.click(); }
-  });
+  const primeDatePicker = () => { datePicker.value = isoDate(currentWeekStart); };
+  datePicker.addEventListener('focus', primeDatePicker);
+  datePicker.addEventListener('click', primeDatePicker);
   datePicker.addEventListener('change', (e) => {
     if(!e.target.value) return;
     const picked = new Date(e.target.value + 'T00:00:00');
@@ -1624,9 +1770,18 @@
     renderWeekStartUI();
     renderCatList();
     settingsOverlay.classList.add('open');
+    document.getElementById('tweaksFab').classList.add('hide-fab');
   });
-  document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsOverlay.classList.remove('open'));
-  settingsOverlay.addEventListener('click', (e) => { if(e.target === settingsOverlay) settingsOverlay.classList.remove('open'); });
+  document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+    settingsOverlay.classList.remove('open');
+    document.getElementById('tweaksFab').classList.remove('hide-fab');
+  });
+  settingsOverlay.addEventListener('click', (e) => {
+    if(e.target === settingsOverlay){
+      settingsOverlay.classList.remove('open');
+      document.getElementById('tweaksFab').classList.remove('hide-fab');
+    }
+  });
 
   // ============ Icon picker ============
   const iconOverlay = document.getElementById('iconOverlay');
@@ -1699,12 +1854,12 @@
   }
 
   const customColorInput = document.getElementById('customColorInput');
-  document.getElementById('customColorBtn').addEventListener('click', () => {
+  const primeCustomColor = () => {
     const cur = (colorTarget && colorTarget.type === 'existing') ? state.categories[colorTarget.idx].color : '#888888';
     if(/^#[0-9a-fA-F]{6}$/.test(cur)) customColorInput.value = cur;
-    if(customColorInput.showPicker){ customColorInput.showPicker(); }
-    else{ customColorInput.click(); }
-  });
+  };
+  customColorInput.addEventListener('focus', primeCustomColor);
+  customColorInput.addEventListener('click', primeCustomColor);
   customColorInput.addEventListener('change', (e) => {
     applyPickedColor(e.target.value);
   });
@@ -1719,10 +1874,19 @@
     heatCatId = catId || state.categories[0].id;
     renderHeatmap();
     heatOverlay.classList.add('open');
+    document.getElementById('tweaksFab').classList.add('hide-fab');
   }
   document.getElementById('openHeatmap').addEventListener('click', () => openHeatmap());
-  document.getElementById('closeHeatBtn').addEventListener('click', () => heatOverlay.classList.remove('open'));
-  heatOverlay.addEventListener('click', (e) => { if(e.target === heatOverlay) heatOverlay.classList.remove('open'); });
+  document.getElementById('closeHeatBtn').addEventListener('click', () => {
+    heatOverlay.classList.remove('open');
+    document.getElementById('tweaksFab').classList.remove('hide-fab');
+  });
+  heatOverlay.addEventListener('click', (e) => {
+    if(e.target === heatOverlay){
+      heatOverlay.classList.remove('open');
+      document.getElementById('tweaksFab').classList.remove('hide-fab');
+    }
+  });
 
   function renderHeatmap(){
     const selector = document.getElementById('heatSelector');
@@ -1860,13 +2024,6 @@
     `;
     heatBody.appendChild(legend);
   }
-
-  // ============ Horizontal scroll: compact category column ============
-  const daysScroll = document.getElementById('daysScroll');
-  const gridWrap = document.getElementById('gridWrap');
-  daysScroll.addEventListener('scroll', () => {
-    gridWrap.classList.toggle('scrolled', daysScroll.scrollLeft > 4);
-  }, { passive:true });
 
   // ============ Tweaks Panel ============
   const tweaksFab = document.getElementById('tweaksFab');
