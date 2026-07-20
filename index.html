@@ -902,6 +902,13 @@
   }
   .acct-email{ font-size:13.5px; font-weight:700; color:var(--ink); }
   .acct-sync-state{ font-size:11.5px; color:var(--muted); margin-top:1px; }
+  .acct-delete-link{
+    display:block; width:100%; text-align:center;
+    background:none; border:none; color:var(--muted);
+    font-size:12px; font-weight:600;
+    padding:14px 0 2px; cursor:pointer;
+  }
+  .acct-delete-link:active{ color:var(--danger); }
   .radio-row{
     display:flex; gap:8px; flex-wrap:wrap;
   }
@@ -1308,6 +1315,7 @@
           </div>
         </div>
         <button class="btn btn-secondary full" id="acctLogoutBtn">로그아웃</button>
+        <button class="acct-delete-link" id="acctDeleteBtn">회원 탈퇴</button>
       </div>
 
       <div class="btn-row" style="margin-top:14px;">
@@ -1402,11 +1410,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence,
-  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut,
+  deleteUser, reauthenticateWithCredential, EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp
+  getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getStorage, ref as storageRef, uploadString, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 // ============================================================
 // Firebase 설정 (weeklymin 프로젝트)
@@ -1420,12 +1432,13 @@ const firebaseConfig = {
   appId: "1:1078105984873:web:21507a53c2de684b07b7f8"
 };
 
-let fbApp = null, fbAuth = null, fbDb = null, fbReady = false;
+let fbApp = null, fbAuth = null, fbDb = null, fbStorage = null, fbReady = false;
 try{
   if(firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_API_KEY'){
     fbApp = initializeApp(firebaseConfig);
     fbAuth = getAuth(fbApp);
     fbDb = getFirestore(fbApp);
+    fbStorage = getStorage(fbApp);
     fbReady = true;
     setPersistence(fbAuth, browserLocalPersistence).catch(()=>{});
   }
@@ -1612,8 +1625,8 @@ try{
     }
   }
 
-  // 사진은 용량이 커서 클라우드에는 올리지 않아요(완료 체크·문구만 동기화).
-  // 사진은 기기별 로컬 저장(localStorage)에만 남아요.
+  // 사진 원본은 용량이 커서 Firestore 문서에는 못 넣어요. 대신 Firebase Storage에
+  // 올리고, 그 다운로드 URL(photoUrl)만 완료 체크·문구와 함께 동기화해요.
   function stripPhotosForCloud(entries){
     const out = {};
     Object.keys(entries).forEach(k => {
@@ -1622,6 +1635,7 @@ try{
       const item = {};
       if(e.done) item.done = true;
       if(e.text) item.text = e.text;
+      if(e.photoUrl) item.photoUrl = e.photoUrl;
       if(Object.keys(item).length) out[k] = item;
     });
     return out;
@@ -1634,26 +1648,47 @@ try{
       const local = state.entries[k] || {};
       const merged = {
         photo: local.photo || null,
+        photoUrl: c.photoUrl || null,
         text: c.text != null ? c.text : null,
         done: !!c.done
       };
-      if(!merged.photo && !merged.text && !merged.done){ delete state.entries[k]; }
+      if(!merged.photo && !merged.photoUrl && !merged.text && !merged.done){ delete state.entries[k]; }
       else{ state.entries[k] = merged; }
     });
-    // Remove local done/text (no photo) entries that were deleted on another device
+    // Clear cloud-tracked fields for entries no longer present remotely
+    // (keeps a locally-taken photo even if the cloud copy was removed elsewhere)
     Object.keys(state.entries).forEach(k => {
       if(cloudEntries[k]) return;
       const local = state.entries[k];
       if(!local) return;
-      if(local.photo){
-        if(local.done || local.text){ local.done = false; local.text = null; }
-      }else if(local.done || local.text){
-        delete state.entries[k];
-      }
+      local.done = false;
+      local.text = null;
+      local.photoUrl = null;
+      if(!local.photo){ delete state.entries[k]; }
     });
   }
 
   function cloudDocRef(){ return doc(fbDb, 'users', currentUser.uid); }
+  function photoStorageRef(key){ return storageRef(fbStorage, `users/${currentUser.uid}/photos/${key}.jpg`); }
+
+  function uploadPhotoToCloud(key, dataUrl){
+    if(!fbReady || !currentUser) return;
+    uploadString(photoStorageRef(key), dataUrl, 'data_url')
+      .then(() => getDownloadURL(photoStorageRef(key)))
+      .then((url) => {
+        const e = state.entries[key];
+        if(!e) return; // entry was removed while uploading
+        e.photoUrl = url;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        queueCloudPush();
+      })
+      .catch((err) => console.warn('photo upload failed', err));
+  }
+
+  function deletePhotoFromCloud(key){
+    if(!fbReady || !currentUser) return;
+    deleteObject(photoStorageRef(key)).catch(() => {});
+  }
 
   async function pullCloud(){
     const snap = await getDoc(cloudDocRef());
@@ -1731,6 +1766,23 @@ try{
     el.classList.toggle('show', !!msg);
   }
 
+  function syncLocalPhotosToCloud(){
+    if(!fbReady || !currentUser) return;
+    const keys = Object.keys(state.entries).filter(k => {
+      const e = state.entries[k];
+      return e && e.photo && !e.photoUrl;
+    });
+    let i = 0;
+    function next(){
+      if(i >= keys.length) return;
+      const k = keys[i++];
+      const e = state.entries[k];
+      if(e && e.photo) uploadPhotoToCloud(k, e.photo);
+      setTimeout(next, 400);
+    }
+    next();
+  }
+
   if(fbReady){
     onAuthStateChanged(fbAuth, async (user) => {
       currentUser = user;
@@ -1742,6 +1794,7 @@ try{
           saveState(true);
           renderWeekStartUI(); renderCatList(); renderWeekLabel(); renderGrid();
           startCloudListener();
+          syncLocalPhotosToCloud();
           hideAuthGate();
           showToast('로그인됐어요');
         }catch(e){ console.warn(e); }
@@ -1815,6 +1868,38 @@ try{
     if(unsubCloudDoc){ unsubCloudDoc(); unsubCloudDoc = null; }
     try{ await signOut(fbAuth); showToast('로그아웃됐어요'); }catch(e){}
   });
+
+  document.getElementById('acctDeleteBtn').addEventListener('click', async () => {
+    if(!fbReady || !currentUser) return;
+    const ok = confirm('정말 계정을 삭제할까요?\n클라우드에 저장된 기록이 영구적으로 삭제되고 되돌릴 수 없어요.\n(이 기기에 저장된 기록은 그대로 남아요.)');
+    if(!ok) return;
+    try{
+      await deleteAccountFlow();
+    }catch(e){
+      if(e && e.code === 'auth/requires-recent-login'){
+        const pw = prompt('보안을 위해 비밀번호를 다시 입력해주세요.');
+        if(!pw){ return; }
+        try{
+          const cred = EmailAuthProvider.credential(currentUser.email, pw);
+          await reauthenticateWithCredential(currentUser, cred);
+          await deleteAccountFlow();
+        }catch(e2){
+          alert(authErrorMessage(e2));
+        }
+      }else{
+        alert(authErrorMessage(e));
+      }
+    }
+  });
+
+  async function deleteAccountFlow(){
+    if(unsubCloudDoc){ unsubCloudDoc(); unsubCloudDoc = null; }
+    try{ await deleteDoc(cloudDocRef()); }catch(e){ console.warn('cloud doc delete failed', e); }
+    await deleteUser(currentUser);
+    showToast('계정이 삭제됐어요');
+    accountOverlay.classList.remove('open');
+  }
+
   if(!fbReady){
     showAcctError('클라우드 동기화가 아직 설정되지 않았어요. (Firebase 설정 필요)');
   }
@@ -1881,7 +1966,7 @@ try{
   function getEntry(catId, dateIso){
     return state.entries[entryKey(catId, dateIso)] || null;
   }
-  function isDone(e){ return !!(e && (e.done || e.photo || e.text)); }
+  function isDone(e){ return !!(e && (e.done || e.photo || e.photoUrl || e.text)); }
 
   // ============ Grid render ============
   function renderGrid(){
@@ -1951,7 +2036,7 @@ try{
           + (isToday ? ' today-col' : '')
           + (isWeekend ? ' weekend-col' : '');
 
-        const photo = entry && entry.photo;
+        const photo = entry && (entry.photo || entry.photoUrl);
         const text = entry && entry.text;
         const done = entry && entry.done;
 
@@ -2059,7 +2144,7 @@ try{
   function toggleDone(cat, dateIso){
     const key = entryKey(cat.id, dateIso);
     const cur = state.entries[key];
-    if(cur && (cur.photo || cur.text)){
+    if(cur && (cur.photo || cur.photoUrl || cur.text)){
       // If there's rich content, tapping opens the sheet instead of toggling
       const idx = currentDayLabels().findIndex((_,i) => {
         const d = new Date(currentWeekStart); d.setDate(d.getDate()+i);
@@ -2092,7 +2177,7 @@ try{
     activeCat = cat; activeDateIso = dateIso; activeDayIdx = dayIdx;
     const key = entryKey(cat.id, dateIso);
     const entry = state.entries[key];
-    const photo = entry && entry.photo;
+    const photo = entry && (entry.photo || entry.photoUrl);
     const text = entry && entry.text;
     const [y,m,d] = dateIso.split('-');
     const labels = currentDayLabels();
@@ -2109,7 +2194,8 @@ try{
         const cur = state.entries[key];
         const curText = cur && cur.text;
         const curDone = cur && cur.done;
-        if(curText || curDone){ state.entries[key] = { done: !!curDone, photo:null, text: curText || null }; }
+        deletePhotoFromCloud(key);
+        if(curText || curDone){ state.entries[key] = { done: !!curDone, photo:null, photoUrl:null, text: curText || null }; }
         else{ delete state.entries[key]; }
         saveState(true); renderGrid(); openCellSheet(activeCat, activeDateIso, activeDayIdx);
       });
@@ -2145,6 +2231,7 @@ try{
   document.getElementById('clearCellBtn').addEventListener('click', () => {
     if(!activeCat) return;
     const key = entryKey(activeCat.id, activeDateIso);
+    deletePhotoFromCloud(key);
     delete state.entries[key];
     saveState(); renderGrid(); closeCellSheet();
   });
@@ -2158,9 +2245,10 @@ try{
       const key = entryKey(activeCat.id, activeDateIso);
       const cur = state.entries[key] || {};
       const text = noteInput.value.trim() || cur.text || null;
-      state.entries[key] = { done:true, photo:dataUrl, text };
+      state.entries[key] = { done:true, photo:dataUrl, photoUrl:null, text };
       saveState(); renderGrid();
       openCellSheet(activeCat, activeDateIso, activeDayIdx);
+      uploadPhotoToCloud(key, dataUrl);
     }).catch(() => alert('사진을 불러오지 못했습니다.'));
     fileInput.value = '';
   });
