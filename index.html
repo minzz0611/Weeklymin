@@ -125,6 +125,106 @@
     --sat:#6FA8DC;
     --sun:#E8896C;
   }
+  html[data-palette="mint"]{
+    --canvas:#EFF7F5;
+    --surface:#FFFFFF;
+    --surface-2:#DCEDE9;
+    --ink:#10302B;
+    --ink-soft:#2E4F49;
+    --muted:#6C8B85;
+    --muted-2:#A9C4BE;
+    --hairline:rgba(16,48,43,0.10);
+    --hairline-strong:rgba(16,48,43,0.18);
+    --accent:#0F9B8E;
+    --accent-contrast:#FFFFFF;
+    --check-fill:#0F9B8E;
+    --check-mark:#FFFFFF;
+    --today:#0F9B8E;
+    --today-tint:rgba(15,155,142,0.10);
+    --danger:#C24545;
+    --sat:#2E70A8;
+    --sun:#C24545;
+  }
+  html[data-palette="sunset"]{
+    --canvas:#FBF0EA;
+    --surface:#FFFCFA;
+    --surface-2:#F3DFD2;
+    --ink:#3A2318;
+    --ink-soft:#5A3B2A;
+    --muted:#97786A;
+    --muted-2:#D0B7A8;
+    --hairline:rgba(58,35,24,0.10);
+    --hairline-strong:rgba(58,35,24,0.18);
+    --accent:#E4572E;
+    --accent-contrast:#FFFFFF;
+    --check-fill:#E4572E;
+    --check-mark:#FFFFFF;
+    --today:#E4572E;
+    --today-tint:rgba(228,87,46,0.10);
+    --danger:#C23B3B;
+    --sat:#2E70A8;
+    --sun:#C23B3B;
+  }
+  html[data-palette="ocean"]{
+    --canvas:#EEF3F8;
+    --surface:#FFFFFF;
+    --surface-2:#DCE6F0;
+    --ink:#14263D;
+    --ink-soft:#2C425E;
+    --muted:#6F859C;
+    --muted-2:#AEBFD1;
+    --hairline:rgba(20,38,61,0.10);
+    --hairline-strong:rgba(20,38,61,0.18);
+    --accent:#1D6FB8;
+    --accent-contrast:#FFFFFF;
+    --check-fill:#1D6FB8;
+    --check-mark:#FFFFFF;
+    --today:#1D6FB8;
+    --today-tint:rgba(29,111,184,0.10);
+    --danger:#C1473D;
+    --sat:#4B8FD1;
+    --sun:#C1473D;
+  }
+  html[data-palette="rose"]{
+    --canvas:#FBEFF2;
+    --surface:#FFFFFF;
+    --surface-2:#F3DCE2;
+    --ink:#3A1B24;
+    --ink-soft:#5C2E3B;
+    --muted:#9A6F7A;
+    --muted-2:#D3AFB8;
+    --hairline:rgba(58,27,36,0.10);
+    --hairline-strong:rgba(58,27,36,0.18);
+    --accent:#D14D72;
+    --accent-contrast:#FFFFFF;
+    --check-fill:#D14D72;
+    --check-mark:#FFFFFF;
+    --today:#D14D72;
+    --today-tint:rgba(209,77,114,0.10);
+    --danger:#B4361B;
+    --sat:#2E70A8;
+    --sun:#B4361B;
+  }
+  html[data-palette="slate"]{
+    --canvas:#F1F3F5;
+    --surface:#FFFFFF;
+    --surface-2:#E2E6EA;
+    --ink:#1B2530;
+    --ink-soft:#3A4652;
+    --muted:#74818D;
+    --muted-2:#B4BEC6;
+    --hairline:rgba(27,37,48,0.09);
+    --hairline-strong:rgba(27,37,48,0.16);
+    --accent:#3D5A73;
+    --accent-contrast:#FFFFFF;
+    --check-fill:#3D5A73;
+    --check-mark:#FFFFFF;
+    --today:#3D5A73;
+    --today-tint:rgba(61,90,115,0.10);
+    --danger:#B4361B;
+    --sat:#3D5A73;
+    --sun:#B4361B;
+  }
 
   /* Cell shape variants */
   html[data-cell-shape="rounded"]{ --radius-cell:14px; }
@@ -333,22 +433,12 @@
     position:relative;
     cursor:pointer;
   }
-  .cat-cell .cat-dot{
-    width:9px; height:9px; border-radius:50%;
-    background:var(--cat-color, var(--ink));
-    position:absolute; top:8px; right:8px;
-  }
   .cat-cell .cat-icon{
     width:34px; height:34px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
     font-size:17px; line-height:1;
     position:relative;
     transition:font-size .18s ease, width .18s ease, height .18s ease;
-  }
-  .cat-cell .cat-icon::before{
-    content:''; position:absolute; inset:0; border-radius:50%;
-    background:var(--cat-color, var(--ink));
-    opacity:.13;
   }
   .cat-cell .cat-name{
     display:block;
@@ -357,9 +447,15 @@
     font-weight:600; font-size:12.5px; letter-spacing:-0.02em;
     color:var(--ink);
   }
+  .cat-cell .cat-time{
+    display:block;
+    font-size:10px; font-weight:600; color:var(--muted);
+    letter-spacing:-0.01em; margin-top:1px;
+  }
 
   /* Category display: icon-only or text-only (small color dot always shown) */
   html[data-cat-mode="icon"] .cat-cell .cat-name{ display:none; }
+  html[data-cat-mode="icon"] .cat-cell .cat-time{ display:none; }
   html[data-cat-mode="text"] .cat-cell .cat-icon{ display:none; }
 
   .data-cell{
@@ -384,6 +480,9 @@
   .data-cell.filled-check{
     background:var(--check-fill);
     border-color:var(--check-fill);
+  }
+  .data-cell.today-col.filled-check{
+    box-shadow: none;
   }
   .data-cell.filled-check .check-mark{
     width:56%; height:56%;
@@ -545,10 +644,13 @@
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
   /* Category manager */
+  .cat-row-block{
+    background:var(--surface); border:1px solid var(--hairline); border-radius:14px;
+    margin-bottom:10px; overflow:hidden;
+  }
   .cat-row{
-    display:flex; align-items:center; gap:8px; margin-bottom:10px;
-    background:var(--surface); border-radius:14px; padding:8px;
-    border:1px solid var(--hairline);
+    display:flex; align-items:center; gap:8px;
+    padding:8px;
   }
   .cat-order{ display:flex; flex-direction:column; gap:2px; }
   .mini-btn{
@@ -587,6 +689,36 @@
   .del-btn:hover{ color:var(--danger); background:var(--surface-2); }
   .del-btn svg{ width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
 
+  .time-pick-wrap{
+    position:relative;
+    display:inline-flex; align-items:center; gap:4px;
+    flex:none;
+    min-width:36px; height:36px;
+    padding:0 10px;
+    border-radius:999px;
+    background:var(--surface-2);
+    border:1px solid var(--hairline);
+    font-size:11.5px; font-weight:700; color:var(--muted);
+    letter-spacing:-0.01em;
+  }
+  .time-pick-wrap.has-time{
+    color:var(--ink); background:var(--surface); border-color:var(--hairline-strong);
+    padding:0 10px 0 8px;
+  }
+  .time-pick-wrap svg{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+  .time-input{
+    position:absolute; inset:0; width:100%; height:100%;
+    opacity:0; border:0; padding:0; margin:0; cursor:pointer;
+    -webkit-appearance:none; appearance:none;
+  }
+  .time-clear-btn{
+    position:absolute; top:-6px; right:-6px; z-index:2;
+    width:16px; height:16px; border-radius:50%; border:2px solid var(--surface);
+    background:var(--ink); color:var(--canvas);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-size:10px; line-height:1; flex:none;
+  }
+
   .add-cat-row{
     display:flex; gap:8px; margin-top:14px;
   }
@@ -597,7 +729,42 @@
   .add-cat-row input:focus{ outline:none; border-color:var(--ink); }
   .add-cat-row button.add-btn{
     background:var(--ink); color:var(--canvas); border:none; border-radius:12px;
-    padding:0 18px; font-weight:700; font-size:14px; cursor:pointer;
+    width:44px; height:44px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:22px; line-height:1;
+    cursor:pointer;
+    margin-right:6px;
+  }
+
+  .icon-preview-wrap{
+    display:flex; flex-direction:column; align-items:center;
+    margin-bottom:16px;
+  }
+  .icon-preview-input{
+    width:76px; height:76px; border-radius:50%;
+    border:1.5px dashed var(--hairline-strong);
+    background:var(--surface);
+    font-size:34px; line-height:1;
+    text-align:center; padding:0;
+    color:var(--ink);
+    margin-bottom:10px;
+    caret-color:transparent;
+  }
+  .icon-preview-input::placeholder{ color:var(--muted); font-size:26px; }
+  .icon-preview-input:focus{
+    outline:none; border-style:solid; border-color:var(--ink);
+  }
+  .icon-preview-hint{
+    font-size:12px; color:var(--muted); text-align:center;
+  }
+  .icon-grid-divider{
+    display:flex; align-items:center; gap:10px;
+    margin:18px 0 10px;
+    font-size:11.5px; color:var(--muted); font-weight:600;
+  }
+  .icon-grid-divider::before,
+  .icon-grid-divider::after{
+    content:''; flex:1; height:1px; background:var(--hairline);
   }
 
   .icon-grid{
@@ -665,6 +832,28 @@
   .setting-hint{
     font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4;
   }
+  .acct-field-row{ margin-bottom:8px; }
+  .acct-field-row input{
+    width:100%; box-sizing:border-box;
+    border:1px solid var(--hairline-strong); background:var(--surface);
+    border-radius:12px; padding:11px 14px; font-size:14px; color:var(--ink);
+  }
+  .acct-field-row input:focus{ outline:none; border-color:var(--ink); }
+  .acct-error{
+    font-size:12px; color:var(--danger); font-weight:600; margin:2px 0 8px;
+    min-height:0; display:none;
+  }
+  .acct-error.show{ display:block; }
+  .acct-status{
+    display:flex; align-items:center; gap:10px;
+    padding:12px 14px; margin-bottom:10px;
+    background:var(--surface); border:1px solid var(--hairline); border-radius:14px;
+  }
+  .acct-status-dot{
+    width:9px; height:9px; border-radius:50%; background:#3A8B4F; flex:none;
+  }
+  .acct-email{ font-size:13.5px; font-weight:700; color:var(--ink); }
+  .acct-sync-state{ font-size:11.5px; color:var(--muted); margin-top:1px; }
   .radio-row{
     display:flex; gap:8px; flex-wrap:wrap;
   }
@@ -712,6 +901,24 @@
   }
   .heat-stat .s-lab{
     font-size:11.5px; color:var(--muted); font-weight:600; letter-spacing:-0.02em;
+  }
+
+  .sheet.heat-sheet{
+    display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+  .sheet.heat-sheet .sheet-handle,
+  .sheet.heat-sheet .sheet-title,
+  .sheet.heat-sheet .sheet-sub,
+  .sheet.heat-sheet .heat-selector,
+  .sheet.heat-sheet .heat-stats,
+  .sheet.heat-sheet .btn-row{
+    flex:none;
+  }
+  .heat-body-scroll{
+    flex:1; min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
   }
 
   .heat-month{ margin-bottom:22px; }
@@ -969,6 +1176,46 @@
         </div>
       </div>
 
+      <div class="setting-group">
+        <div class="setting-label">계정 (여러 기기 동기화)</div>
+
+        <div id="accountLoggedOut">
+          <div class="acct-field-row">
+            <input type="email" id="acctEmail" placeholder="이메일" autocomplete="username">
+          </div>
+          <div class="acct-field-row">
+            <input type="password" id="acctPassword" placeholder="비밀번호 (6자 이상)" autocomplete="current-password">
+          </div>
+          <div class="acct-error" id="acctError"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="acctLoginBtn">로그인</button>
+            <button class="btn btn-secondary" id="acctSignupBtn">회원가입</button>
+          </div>
+          <div class="setting-hint">로그인하면 이 기록이 클라우드에 저장돼서, 같은 계정으로 로그인한 다른 기기에서도 똑같이 보여요. 한 번 로그인하면 로그아웃하기 전까지 다시 로그인할 필요 없어요.</div>
+        </div>
+
+        <div id="accountLoggedIn" style="display:none;">
+          <div class="acct-status">
+            <div class="acct-status-dot"></div>
+            <div>
+              <div class="acct-email" id="acctEmailLabel"></div>
+              <div class="acct-sync-state" id="acctSyncState">동기화됨</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary full" id="acctLogoutBtn">로그아웃</button>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-label">데이터 백업</div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="exportDataBtn">백업 파일 저장</button>
+          <button class="btn btn-secondary" id="importDataBtn">복원하기</button>
+        </div>
+        <div class="setting-hint">기록은 이 기기 브라우저에 저장돼요. 기기를 바꾸거나 브라우저 데이터가 지워질 경우를 대비해 가끔 백업 파일을 저장해두는 걸 추천해요.</div>
+        <input type="file" id="importFileInput" accept="application/json" style="display:none">
+      </div>
+
       <div class="btn-row" style="margin-top:8px;">
         <button class="btn btn-primary full" id="closeSettingsBtn">완료</button>
       </div>
@@ -980,13 +1227,13 @@
     <div class="sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">카테고리 관리</div>
-      <div class="sheet-sub">아이콘·이름·색상·순서를 관리해요</div>
+      <div class="sheet-sub">아이콘·이름·색상·시간·순서를 관리해요</div>
 
       <div id="catList"></div>
       <div class="add-cat-row">
         <button class="icon-pick-btn" id="newCatIconBtn" type="button">🔖</button>
         <input type="text" id="newCatInput" placeholder="새 카테고리 이름" maxlength="12">
-        <button class="add-btn" id="addCatBtn">추가</button>
+        <button class="add-btn" id="addCatBtn" aria-label="카테고리 추가">+</button>
       </div>
 
       <div class="btn-row" style="margin-top:14px;">
@@ -1001,6 +1248,14 @@
       <div class="sheet-handle"></div>
       <div class="sheet-title">아이콘 선택</div>
       <div class="sheet-sub">카테고리 헤더에 이 아이콘이 표시돼요</div>
+
+      <div class="icon-preview-wrap">
+        <input type="text" id="customIconInput" class="icon-preview-input" placeholder="＋" maxlength="4" inputmode="text">
+        <div class="icon-preview-hint">탭해서 키보드로 원하는 이모지를 입력하세요</div>
+      </div>
+      <button class="btn btn-primary full" id="customIconUseBtn" type="button">이 아이콘 사용</button>
+
+      <div class="icon-grid-divider"><span>또는 목록에서 선택</span></div>
       <div class="icon-grid" id="iconGrid"></div>
       <div class="btn-row" style="margin-top:6px;">
         <button class="btn btn-ghost full" id="closeIconBtn">닫기</button>
@@ -1028,14 +1283,17 @@
 
   <!-- Heatmap sheet -->
   <div class="overlay" id="heatOverlay">
-    <div class="sheet">
+    <div class="sheet heat-sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">월간 히트맵</div>
       <div class="sheet-sub">최근 3개월간의 카테고리별 기록 흐름</div>
 
       <div class="heat-selector" id="heatSelector"></div>
       <div class="heat-stats" id="heatStats"></div>
-      <div id="heatBody"></div>
+
+      <div class="heat-body-scroll">
+        <div id="heatBody"></div>
+      </div>
 
       <div class="btn-row" style="margin-top:14px;">
         <button class="btn btn-ghost full" id="closeHeatBtn">닫기</button>
@@ -1046,7 +1304,39 @@
   <div class="toast" id="toast"></div>
 
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ============================================================
+// Firebase 설정 (weeklymin 프로젝트)
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDyCvsqI-WCkG-8dGb1c7RpAa-BMB72N-c",
+  authDomain: "weeklymin.firebaseapp.com",
+  projectId: "weeklymin",
+  storageBucket: "weeklymin.firebasestorage.app",
+  messagingSenderId: "1078105984873",
+  appId: "1:1078105984873:web:21507a53c2de684b07b7f8"
+};
+
+let fbApp = null, fbAuth = null, fbDb = null, fbReady = false;
+try{
+  if(firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_API_KEY'){
+    fbApp = initializeApp(firebaseConfig);
+    fbAuth = getAuth(fbApp);
+    fbDb = getFirestore(fbApp);
+    fbReady = true;
+    setPersistence(fbAuth, browserLocalPersistence).catch(()=>{});
+  }
+}catch(e){ console.warn('Firebase 초기화 실패', e); }
+
 (function(){
   // ============ Storage & state ============
   const STORAGE_KEY = 'weeklymin_v2';
@@ -1063,8 +1353,11 @@
     /* blue */ '#2E70A8', '#3E64C8', '#5A7FD6', '#274690',
     /* purple */ '#7C6BE8', '#8E5AA8', '#6A4C93', '#A47FD6',
     /* brown·earth */ '#8B5A2B', '#A0703C', '#6E4E2E', '#9C6644',
-    /* deep */ '#1F1B15', '#0F4C5C', '#823038', '#37306B'
+    /* deep */ '#1F1B15', '#0F4C5C', '#823038', '#37306B',
+    /* pastel */ '#F6C9CE', '#F7D9B8', '#F5E8A8', '#C9E4C5', '#BFE3E0', '#BBD6F2', '#D4C6F0', '#E6D2C3'
   ];
+  // 새 카테고리를 만들 때 기본으로 순환 배정되는 색(파스텔 톤)
+  const DEFAULT_CAT_COLORS = ['#F6C9CE', '#F7D9B8', '#F5E8A8', '#C9E4C5', '#BFE3E0', '#BBD6F2', '#D4C6F0', '#E6D2C3'];
   const ICONS = ['🔖','📝','💪','📚','💧','🏃','😴','🍎','🎯','✅','🎨','🎵','💼','🧘','🌱','💰','🚭','🧹','☕','🌙','🌤','🚶','📖','🍽','🧠','❤️'];
 
   // 대한민국 공휴일(2026년 기준, 대체공휴일 포함). 매년 날짜가 바뀌므로
@@ -1098,7 +1391,12 @@
     { id:'beige',  name:'Beige',  swatches:['#F3F0EA','#1F1B15','#CF4500'] },
     { id:'paper',  name:'Paper',  swatches:['#F5F1EA','#26241E','#3A5A40'] },
     { id:'pastel', name:'Pastel', swatches:['#F6F3F8','#2A2432','#7C6BE8'] },
-    { id:'dark',   name:'Dark',   swatches:['#0F0F0E','#F5F4F1','#8E8C87'] }
+    { id:'dark',   name:'Dark',   swatches:['#0F0F0E','#F5F4F1','#8E8C87'] },
+    { id:'mint',   name:'Mint',   swatches:['#EFF7F5','#10302B','#0F9B8E'] },
+    { id:'sunset', name:'Sunset', swatches:['#FBF0EA','#3A2318','#E4572E'] },
+    { id:'ocean',  name:'Ocean',  swatches:['#EEF3F8','#14263D','#1D6FB8'] },
+    { id:'rose',   name:'Rose',   swatches:['#FBEFF2','#3A1B24','#D14D72'] },
+    { id:'slate',  name:'Slate',  swatches:['#F1F3F5','#1B2530','#3D5A73'] }
   ];
 
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -1107,10 +1405,10 @@
     return {
       weekStart: 1, // 1=Mon, 0=Sun
       categories: [
-        {id: uid(), name:'운동',   icon:'💪', color:'#CF4500'},
-        {id: uid(), name:'독서',   icon:'📚', color:'#3A5A40'},
-        {id: uid(), name:'물',     icon:'💧', color:'#2E70A8'},
-        {id: uid(), name:'명상',   icon:'🧘', color:'#7C6BE8'}
+        {id: uid(), name:'운동',   icon:'💪', color:'#F7D9B8'},
+        {id: uid(), name:'독서',   icon:'📚', color:'#C9E4C5'},
+        {id: uid(), name:'물',     icon:'💧', color:'#BBD6F2'},
+        {id: uid(), name:'명상',   icon:'🧘', color:'#D4C6F0'}
       ],
       entries: {}
     };
@@ -1130,7 +1428,7 @@
       id: c.id || uid(),
       name: c.name || `카테고리${i+1}`,
       icon: c.icon || '🔖',
-      color: CAT_COLORS[i % CAT_COLORS.length]
+      color: DEFAULT_CAT_COLORS[i % DEFAULT_CAT_COLORS.length]
     }));
     const entries = {};
     Object.keys(old.entries).forEach(k => {
@@ -1162,7 +1460,7 @@
     }
     if(typeof parsed.weekStart !== 'number') parsed.weekStart = 1;
     // ensure every category has a color
-    parsed.categories.forEach((c, i) => { if(!c.color) c.color = CAT_COLORS[i % CAT_COLORS.length]; });
+    parsed.categories.forEach((c, i) => { if(!c.color) c.color = DEFAULT_CAT_COLORS[i % DEFAULT_CAT_COLORS.length]; });
     return parsed;
   }
   function loadTweaks(){
@@ -1181,9 +1479,192 @@
     }catch(e){
       alert('저장 공간이 부족합니다. 사진을 일부 삭제해주세요.');
     }
+    queueCloudPush();
   }
   function saveTweaks(){
     try{ localStorage.setItem(TWEAKS_KEY, JSON.stringify(tweaks)); }catch(e){}
+  }
+
+  // ============ Cloud sync (Firebase) ============
+  let currentUser = null;
+  let unsubCloudDoc = null;
+  let cloudSyncTimer = null;
+
+  function setSyncState(text){
+    const el = document.getElementById('acctSyncState');
+    if(el) el.textContent = text;
+  }
+
+  function showAcctError(msg){
+    const el = document.getElementById('acctError');
+    if(!el) return;
+    el.textContent = msg || '';
+    el.classList.toggle('show', !!msg);
+  }
+
+  function updateAccountUI(){
+    const out = document.getElementById('accountLoggedOut');
+    const inn = document.getElementById('accountLoggedIn');
+    if(!out || !inn) return;
+    if(currentUser){
+      out.style.display = 'none';
+      inn.style.display = 'block';
+      const label = document.getElementById('acctEmailLabel');
+      if(label) label.textContent = currentUser.email || '';
+    }else{
+      out.style.display = 'block';
+      inn.style.display = 'none';
+      showAcctError('');
+    }
+  }
+
+  // 사진은 용량이 커서 클라우드에는 올리지 않아요(완료 체크·문구만 동기화).
+  // 사진은 기기별 로컬 저장(localStorage)에만 남아요.
+  function stripPhotosForCloud(entries){
+    const out = {};
+    Object.keys(entries).forEach(k => {
+      const e = entries[k];
+      if(!e) return;
+      const item = {};
+      if(e.done) item.done = true;
+      if(e.text) item.text = e.text;
+      if(Object.keys(item).length) out[k] = item;
+    });
+    return out;
+  }
+
+  function mergeCloudEntries(cloudEntries){
+    cloudEntries = cloudEntries || {};
+    Object.keys(cloudEntries).forEach(k => {
+      const c = cloudEntries[k];
+      const local = state.entries[k] || {};
+      const merged = {
+        photo: local.photo || null,
+        text: c.text != null ? c.text : null,
+        done: !!c.done
+      };
+      if(!merged.photo && !merged.text && !merged.done){ delete state.entries[k]; }
+      else{ state.entries[k] = merged; }
+    });
+    // Remove local done/text (no photo) entries that were deleted on another device
+    Object.keys(state.entries).forEach(k => {
+      if(cloudEntries[k]) return;
+      const local = state.entries[k];
+      if(!local) return;
+      if(local.photo){
+        if(local.done || local.text){ local.done = false; local.text = null; }
+      }else if(local.done || local.text){
+        delete state.entries[k];
+      }
+    });
+  }
+
+  function cloudDocRef(){ return doc(fbDb, 'users', currentUser.uid); }
+
+  async function pullCloud(){
+    const snap = await getDoc(cloudDocRef());
+    if(snap.exists()){
+      const data = snap.data();
+      if(Array.isArray(data.categories) && data.categories.length) state.categories = data.categories;
+      if(typeof data.weekStart === 'number') state.weekStart = data.weekStart;
+      mergeCloudEntries(data.entries);
+      return true;
+    }
+    return false;
+  }
+
+  async function pushCloudNow(){
+    if(!fbReady || !currentUser) return;
+    try{
+      await setDoc(cloudDocRef(), {
+        categories: state.categories,
+        weekStart: state.weekStart,
+        entries: stripPhotosForCloud(state.entries),
+        updatedAt: serverTimestamp()
+      });
+      setSyncState('동기화됨');
+    }catch(e){
+      console.warn('cloud push failed', e);
+      setSyncState('동기화 실패 · 다시 시도해요');
+    }
+  }
+
+  function queueCloudPush(){
+    if(!fbReady || !currentUser) return;
+    setSyncState('동기화 중…');
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(pushCloudNow, 700);
+  }
+
+  function startCloudListener(){
+    if(unsubCloudDoc){ unsubCloudDoc(); unsubCloudDoc = null; }
+    unsubCloudDoc = onSnapshot(cloudDocRef(), (snap) => {
+      if(!snap.exists()) return;
+      const data = snap.data();
+      if(Array.isArray(data.categories) && data.categories.length) state.categories = data.categories;
+      if(typeof data.weekStart === 'number') state.weekStart = data.weekStart;
+      mergeCloudEntries(data.entries);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderWeekStartUI(); renderCatList(); renderWeekLabel(); renderGrid();
+      setSyncState('동기화됨');
+    }, (err) => { console.warn('cloud listen error', err); });
+  }
+
+  function authErrorMessage(e){
+    const code = (e && e.code) || '';
+    if(code.includes('email-already-in-use')) return '이미 가입된 이메일이에요.';
+    if(code.includes('invalid-email')) return '이메일 형식이 올바르지 않아요.';
+    if(code.includes('weak-password')) return '비밀번호는 6자 이상이어야 해요.';
+    if(code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential')) return '이메일 또는 비밀번호가 올바르지 않아요.';
+    if(code.includes('too-many-requests')) return '시도가 너무 많아요. 잠시 후 다시 시도해주세요.';
+    if(code.includes('network-request-failed')) return '네트워크 연결을 확인해주세요.';
+    return '문제가 발생했어요. 다시 시도해주세요.';
+  }
+
+  if(fbReady){
+    onAuthStateChanged(fbAuth, async (user) => {
+      currentUser = user;
+      updateAccountUI();
+      if(user){
+        try{
+          const existed = await pullCloud();
+          if(!existed){ await pushCloudNow(); }
+          saveState(true);
+          renderWeekStartUI(); renderCatList(); renderWeekLabel(); renderGrid();
+          startCloudListener();
+          showToast('로그인됐어요');
+        }catch(e){ console.warn(e); }
+      }else{
+        if(unsubCloudDoc){ unsubCloudDoc(); unsubCloudDoc = null; }
+      }
+    });
+  }
+
+  document.getElementById('acctLoginBtn').addEventListener('click', async () => {
+    if(!fbReady){ showAcctError('아직 클라우드 동기화가 설정되지 않았어요.'); return; }
+    const email = document.getElementById('acctEmail').value.trim();
+    const pw = document.getElementById('acctPassword').value;
+    if(!email || !pw){ showAcctError('이메일과 비밀번호를 입력해주세요.'); return; }
+    showAcctError('');
+    try{ await signInWithEmailAndPassword(fbAuth, email, pw); }
+    catch(e){ showAcctError(authErrorMessage(e)); }
+  });
+  document.getElementById('acctSignupBtn').addEventListener('click', async () => {
+    if(!fbReady){ showAcctError('아직 클라우드 동기화가 설정되지 않았어요.'); return; }
+    const email = document.getElementById('acctEmail').value.trim();
+    const pw = document.getElementById('acctPassword').value;
+    if(!email || !pw){ showAcctError('이메일과 비밀번호를 입력해주세요.'); return; }
+    if(pw.length < 6){ showAcctError('비밀번호는 6자 이상이어야 해요.'); return; }
+    showAcctError('');
+    try{ await createUserWithEmailAndPassword(fbAuth, email, pw); }
+    catch(e){ showAcctError(authErrorMessage(e)); }
+  });
+  document.getElementById('acctLogoutBtn').addEventListener('click', async () => {
+    if(unsubCloudDoc){ unsubCloudDoc(); unsubCloudDoc = null; }
+    try{ await signOut(fbAuth); showToast('로그아웃됐어요'); }catch(e){}
+  });
+  if(!fbReady){
+    showAcctError('클라우드 동기화가 아직 설정되지 않았어요. (Firebase 설정 필요)');
   }
 
   // ============ Toast ============
@@ -1267,7 +1748,8 @@
       const c = document.createElement('div');
       c.className = 'cat-cell';
       c.style.setProperty('--cat-color', cat.color);
-      c.innerHTML = `<span class="cat-dot"></span><span class="cat-icon">${escapeHtml(cat.icon || '🔖')}</span><span class="cat-name">${escapeHtml(cat.name)}</span>`;
+      c.innerHTML = `<span class="cat-icon">${escapeHtml(cat.icon || '🔖')}</span><span class="cat-name">${escapeHtml(cat.name)}</span>` +
+        (cat.time ? `<span class="cat-time">${escapeHtml(cat.time)}</span>` : '');
       c.addEventListener('click', () => {
         // clicking category opens heatmap for it
         openHeatmap(cat.id);
@@ -1600,25 +2082,34 @@
   function renderCatList(){
     catList.innerHTML = '';
     state.categories.forEach((cat, idx) => {
-      const row = document.createElement('div');
-      row.className = 'cat-row';
-      row.innerHTML = `
-        <div class="cat-order">
-          <button class="mini-btn" data-act="up" data-idx="${idx}" ${idx===0?'disabled':''} aria-label="위로">
-            <svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
-          </button>
-          <button class="mini-btn" data-act="down" data-idx="${idx}" ${idx===state.categories.length-1?'disabled':''} aria-label="아래로">
-            <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      const block = document.createElement('div');
+      block.className = 'cat-row-block';
+      const hasTime = !!cat.time;
+      block.innerHTML = `
+        <div class="cat-row">
+          <div class="cat-order">
+            <button class="mini-btn" data-act="up" data-idx="${idx}" ${idx===0?'disabled':''} aria-label="위로">
+              <svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
+            </button>
+            <button class="mini-btn" data-act="down" data-idx="${idx}" ${idx===state.categories.length-1?'disabled':''} aria-label="아래로">
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+          <button class="icon-pick-btn" data-act="icon" data-idx="${idx}" type="button">${escapeHtml(cat.icon || '🔖')}</button>
+          <button class="color-pick-btn" data-act="color" data-idx="${idx}" style="--dot-color:${cat.color}" aria-label="색상"></button>
+          <input type="text" class="name-input" data-idx="${idx}" value="${escapeHtml(cat.name)}" maxlength="12">
+          <div class="time-pick-wrap ${hasTime ? 'has-time' : ''}" aria-label="시간">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            ${hasTime ? `<span>${escapeHtml(cat.time)}</span>` : ''}
+            <input type="time" class="time-input" data-idx="${idx}" value="${cat.time || ''}">
+            ${hasTime ? `<button class="time-clear-btn" data-act="clear-time" data-idx="${idx}" aria-label="시간 지우기" type="button">×</button>` : ''}
+          </div>
+          <button class="del-btn" data-act="del" data-idx="${idx}" aria-label="삭제">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
           </button>
         </div>
-        <button class="icon-pick-btn" data-act="icon" data-idx="${idx}" type="button">${escapeHtml(cat.icon || '🔖')}</button>
-        <button class="color-pick-btn" data-act="color" data-idx="${idx}" style="--dot-color:${cat.color}" aria-label="색상"></button>
-        <input type="text" class="name-input" data-idx="${idx}" value="${escapeHtml(cat.name)}" maxlength="12">
-        <button class="del-btn" data-act="del" data-idx="${idx}" aria-label="삭제">
-          <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-        </button>
       `;
-      catList.appendChild(row);
+      catList.appendChild(block);
     });
   }
 
@@ -1641,6 +2132,8 @@
       renderColorGrid(state.categories[idx].color);
       colorOverlay.classList.add('open');
       return;
+    }else if(act === 'clear-time'){
+      state.categories[idx].time = null;
     }else if(act === 'del'){
       if(state.categories.length <= 1){ alert('카테고리는 최소 1개 이상 필요합니다.'); return; }
       if(confirm('이 카테고리와 관련 기록을 모두 삭제할까요?')){
@@ -1653,12 +2146,17 @@
   });
 
   catList.addEventListener('change', (e) => {
-    if(e.target.tagName !== 'INPUT') return;
     const idx = parseInt(e.target.dataset.idx, 10);
-    const val = e.target.value.trim();
-    if(!val){ e.target.value = state.categories[idx].name; return; }
-    state.categories[idx].name = val;
-    saveState(true); renderGrid();
+    if(isNaN(idx)) return;
+    if(e.target.classList.contains('name-input')){
+      const val = e.target.value.trim();
+      if(!val){ e.target.value = state.categories[idx].name; return; }
+      state.categories[idx].name = val;
+      saveState(true); renderGrid();
+    }else if(e.target.classList.contains('time-input')){
+      state.categories[idx].time = e.target.value || null;
+      saveState(true); renderCatList(); renderGrid();
+    }
   });
 
   document.getElementById('addCatBtn').addEventListener('click', () => {
@@ -1666,8 +2164,8 @@
     const val = input.value.trim();
     if(!val) return;
     const usedColors = state.categories.map(c => c.color);
-    const nextColor = CAT_COLORS.find(c => !usedColors.includes(c)) || CAT_COLORS[state.categories.length % CAT_COLORS.length];
-    state.categories.push({ id: uid(), name: val, icon: newCatIcon, color: nextColor });
+    const nextColor = DEFAULT_CAT_COLORS.find(c => !usedColors.includes(c)) || DEFAULT_CAT_COLORS[state.categories.length % DEFAULT_CAT_COLORS.length];
+    state.categories.push({ id: uid(), name: val, icon: newCatIcon, color: nextColor, time: null });
     input.value = '';
     newCatIcon = '🔖';
     document.getElementById('newCatIconBtn').textContent = newCatIcon;
@@ -1690,6 +2188,68 @@
     }
   });
 
+  // ============ Data backup / restore ============
+  document.getElementById('exportDataBtn').addEventListener('click', () => {
+    try{
+      const payload = JSON.stringify({
+        app: 'weeklymin',
+        exportedAt: new Date().toISOString(),
+        state
+      }, null, 0);
+      const blob = new Blob([payload], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = isoDate(new Date());
+      a.href = url;
+      a.download = `weeklymin-backup-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast('백업 파일을 저장했어요');
+    }catch(e){
+      alert('백업 파일을 만들지 못했어요.');
+    }
+  });
+
+  const importFileInput = document.getElementById('importFileInput');
+  document.getElementById('importDataBtn').addEventListener('click', () => {
+    importFileInput.click();
+  });
+  importFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      let parsed;
+      try{ parsed = JSON.parse(ev.target.result); }
+      catch(err){ alert('올바른 백업 파일이 아니에요.'); importFileInput.value=''; return; }
+      const incoming = parsed && parsed.state ? parsed.state : parsed;
+      if(!incoming || !Array.isArray(incoming.categories) || typeof incoming.entries !== 'object'){
+        alert('올바른 백업 파일이 아니에요.');
+        importFileInput.value = '';
+        return;
+      }
+      if(!confirm('백업 파일로 복원하면 현재 기기의 기록을 덮어써요. 계속할까요?')){
+        importFileInput.value = '';
+        return;
+      }
+      if(typeof incoming.weekStart !== 'number') incoming.weekStart = 1;
+      incoming.categories.forEach((c, i) => { if(!c.color) c.color = DEFAULT_CAT_COLORS[i % DEFAULT_CAT_COLORS.length]; });
+      state = incoming;
+      saveState(true);
+      renderWeekStartUI();
+      renderCatList();
+      renderWeekLabel();
+      renderGrid();
+      importFileInput.value = '';
+      showToast('복원됐어요');
+      settingsOverlay.classList.remove('open');
+    };
+    reader.onerror = () => { alert('파일을 읽지 못했어요.'); importFileInput.value = ''; };
+    reader.readAsText(file);
+  });
+
   // ============ Category management sheet ============
   const categoryOverlay = document.getElementById('categoryOverlay');
   document.getElementById('openCategory').addEventListener('click', () => {
@@ -1708,29 +2268,48 @@
   // ============ Icon picker ============
   const iconOverlay = document.getElementById('iconOverlay');
   const iconGrid = document.getElementById('iconGrid');
+  const customIconInput = document.getElementById('customIconInput');
   let iconTarget = null;
   let newCatIcon = '🔖';
 
+  function applyPickedIcon(ic){
+    if(!ic) return;
+    if(iconTarget && iconTarget.type === 'new'){
+      newCatIcon = ic;
+      document.getElementById('newCatIconBtn').textContent = ic;
+    }else if(iconTarget && iconTarget.type === 'existing'){
+      state.categories[iconTarget.idx].icon = ic;
+      saveState(true); renderCatList(); renderGrid();
+    }
+    iconOverlay.classList.remove('open');
+  }
+
   function renderIconGrid(currentIcon){
+    customIconInput.value = currentIcon || '';
     iconGrid.innerHTML = '';
     ICONS.forEach(ic => {
       const b = document.createElement('button');
       b.type = 'button';
       b.textContent = ic;
       if(ic === currentIcon) b.classList.add('selected');
-      b.addEventListener('click', () => {
-        if(iconTarget && iconTarget.type === 'new'){
-          newCatIcon = ic;
-          document.getElementById('newCatIconBtn').textContent = ic;
-        }else if(iconTarget && iconTarget.type === 'existing'){
-          state.categories[iconTarget.idx].icon = ic;
-          saveState(true); renderCatList(); renderGrid();
-        }
-        iconOverlay.classList.remove('open');
-      });
+      b.addEventListener('click', () => applyPickedIcon(ic));
       iconGrid.appendChild(b);
     });
   }
+
+  document.getElementById('customIconUseBtn').addEventListener('click', () => {
+    const val = customIconInput.value.trim();
+    if(!val){ customIconInput.focus(); return; }
+    // Keep just the first grapheme-ish chunk in case more than one emoji was typed/pasted
+    const first = Array.from(val)[0];
+    applyPickedIcon(first);
+  });
+  customIconInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      document.getElementById('customIconUseBtn').click();
+    }
+  });
   document.getElementById('newCatIconBtn').addEventListener('click', () => {
     iconTarget = { type:'new' };
     renderIconGrid(newCatIcon);
