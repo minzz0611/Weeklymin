@@ -922,7 +922,34 @@
     background:var(--ink); color:var(--canvas); border-color:var(--ink);
   }
 
-  /* ============ Heatmap sheet ============ */
+  /* ============ View tabs (Weekly / Heatmap) ============ */
+  .view-tabs{
+    display:flex; gap:6px;
+    max-width:900px; margin:0 auto; width:100%;
+    box-sizing:border-box;
+    padding:2px 22px 14px;
+    flex:none;
+  }
+  .view-tab{
+    flex:1;
+    padding:10px 0;
+    border-radius:var(--radius-pill);
+    background:transparent; border:1px solid var(--hairline-strong);
+    color:var(--muted); font-weight:700; font-size:13.5px; letter-spacing:-0.02em;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .view-tab.active{
+    background:var(--ink); color:var(--canvas); border-color:var(--ink);
+  }
+
+  .app-view{
+    flex:1; min-height:0;
+    display:flex; flex-direction:column;
+  }
+  .app-view.view-hidden{ display:none; }
+
+  /* ============ Heatmap view ============ */
   .heat-selector{
     display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:14px;
     scrollbar-width:none;
@@ -944,7 +971,7 @@
   .heat-chip.active .h-dot{ box-shadow: 0 0 0 1.5px rgba(255,255,255,0.3); }
 
   .heat-stats{
-    display:flex; gap:14px; margin-bottom:16px;
+    display:flex; gap:14px; margin-bottom:4px;
     padding:14px 16px;
     background:var(--surface); border-radius:16px; border:1px solid var(--hairline);
   }
@@ -958,22 +985,17 @@
     font-size:11.5px; color:var(--muted); font-weight:600; letter-spacing:-0.02em;
   }
 
-  .sheet.heat-sheet{
-    display:flex; flex-direction:column;
-    overflow:hidden;
-  }
-  .sheet.heat-sheet .sheet-handle,
-  .sheet.heat-sheet .sheet-title,
-  .sheet.heat-sheet .sheet-sub,
-  .sheet.heat-sheet .heat-selector,
-  .sheet.heat-sheet .heat-stats,
-  .sheet.heat-sheet .btn-row{
+  .heat-header{
     flex:none;
+    max-width:900px; margin:0 auto; width:100%;
+    box-sizing:border-box;
+    padding:14px 22px 12px;
   }
-  .heat-body-scroll{
-    flex:1; min-height:0;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
+  #heatScroll{
+    padding-left:22px; padding-right:22px;
+  }
+  #heatBody{
+    max-width:900px; margin:0 auto;
   }
 
   .heat-month{ margin-bottom:22px; }
@@ -1139,9 +1161,6 @@
       <span class="brand-name">weeklymin<span class="dot">.</span></span>
     </div>
     <div class="top-actions">
-      <button class="icon-btn" id="openHeatmap" aria-label="히트맵" title="히트맵">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      </button>
       <button class="icon-btn" id="openCategory" aria-label="카테고리 관리" title="카테고리 관리">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg>
       </button>
@@ -1154,37 +1173,57 @@
     </div>
   </div>
 
-  <!-- Week nav -->
-  <div class="week-nav">
-    <button class="week-nav-arrow" id="prevWeek" aria-label="이전 주">
-      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-    </button>
-    <div class="week-pill" id="weekLabel">2026년 7월 3주차</div>
-    <button class="week-nav-arrow" id="nextWeek" aria-label="다음 주">
-      <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
-    </button>
-    <div class="week-nav-arrow date-btn-wrap" aria-label="날짜로 이동">
-      <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17"/><path d="M8 3v4"/><path d="M16 3v4"/></svg>
-      <input type="date" id="datePicker">
-    </div>
+  <!-- View tabs -->
+  <div class="view-tabs">
+    <button class="view-tab active" id="tabWeek" data-view="week">주간</button>
+    <button class="view-tab" id="tabHeatmap" data-view="heatmap">월간 (히트맵)</button>
   </div>
 
-  <!-- Progress -->
-  <div class="progress-strip" id="progressStrip">
-    <div class="prog-label"><b id="progDone">0</b> / <span id="progTotal">0</span></div>
-    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-    <div class="prog-pct" id="progPct">0%</div>
-  </div>
-
-  <!-- Scrollable grid area (header above stays fixed) -->
-  <div class="app-scroll" id="appScroll">
-    <div class="grid-wrap" id="gridWrap">
-      <div class="cat-col" id="catCol"></div>
-      <div class="days-scroll" id="daysScroll">
-        <div class="days-inner" id="daysInner"></div>
+  <!-- Week view -->
+  <div id="weekView" class="app-view">
+    <!-- Week nav -->
+    <div class="week-nav">
+      <button class="week-nav-arrow" id="prevWeek" aria-label="이전 주">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="week-pill" id="weekLabel">2026년 7월 3주차</div>
+      <button class="week-nav-arrow" id="nextWeek" aria-label="다음 주">
+        <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <div class="week-nav-arrow date-btn-wrap" aria-label="날짜로 이동">
+        <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17"/><path d="M8 3v4"/><path d="M16 3v4"/></svg>
+        <input type="date" id="datePicker">
       </div>
     </div>
-    <div class="empty-hint">칸을 눌러 완료 체크 · 길게 눌러 사진·문구</div>
+
+    <!-- Progress -->
+    <div class="progress-strip" id="progressStrip">
+      <div class="prog-label"><b id="progDone">0</b> / <span id="progTotal">0</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <div class="prog-pct" id="progPct">0%</div>
+    </div>
+
+    <!-- Scrollable grid area (header above stays fixed) -->
+    <div class="app-scroll" id="appScroll">
+      <div class="grid-wrap" id="gridWrap">
+        <div class="cat-col" id="catCol"></div>
+        <div class="days-scroll" id="daysScroll">
+          <div class="days-inner" id="daysInner"></div>
+        </div>
+      </div>
+      <div class="empty-hint">칸을 눌러 완료 체크 · 길게 눌러 사진·문구</div>
+    </div>
+  </div>
+
+  <!-- Heatmap view -->
+  <div id="heatmapView" class="app-view view-hidden">
+    <div class="heat-header">
+      <div class="heat-selector" id="heatSelector"></div>
+      <div class="heat-stats" id="heatStats"></div>
+    </div>
+    <div class="app-scroll" id="heatScroll">
+      <div id="heatBody"></div>
+    </div>
   </div>
 
   <!-- Cell edit sheet -->
@@ -1384,25 +1423,6 @@
   </div>
 
   <!-- Heatmap sheet -->
-  <div class="overlay" id="heatOverlay">
-    <div class="sheet heat-sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">월간 히트맵</div>
-      <div class="sheet-sub">최근 3개월간의 카테고리별 기록 흐름</div>
-
-      <div class="heat-selector" id="heatSelector"></div>
-      <div class="heat-stats" id="heatStats"></div>
-
-      <div class="heat-body-scroll">
-        <div id="heatBody"></div>
-      </div>
-
-      <div class="btn-row" style="margin-top:14px;">
-        <button class="btn btn-ghost full" id="closeHeatBtn">닫기</button>
-      </div>
-    </div>
-  </div>
-
   <div class="toast" id="toast"></div>
 
 
@@ -2622,24 +2642,30 @@ try{
   document.getElementById('closeColorBtn').addEventListener('click', () => colorOverlay.classList.remove('open'));
   colorOverlay.addEventListener('click', (e) => { if(e.target === colorOverlay) colorOverlay.classList.remove('open'); });
 
+  // ============ View tabs (Weekly / Heatmap) ============
+  const weekView = document.getElementById('weekView');
+  const heatmapView = document.getElementById('heatmapView');
+  const tabWeek = document.getElementById('tabWeek');
+  const tabHeatmap = document.getElementById('tabHeatmap');
+
+  function switchView(view){
+    const toHeatmap = view === 'heatmap';
+    weekView.classList.toggle('view-hidden', toHeatmap);
+    heatmapView.classList.toggle('view-hidden', !toHeatmap);
+    tabWeek.classList.toggle('active', !toHeatmap);
+    tabHeatmap.classList.toggle('active', toHeatmap);
+    if(toHeatmap) renderHeatmap();
+  }
+  tabWeek.addEventListener('click', () => switchView('week'));
+  tabHeatmap.addEventListener('click', () => switchView('heatmap'));
+
   // ============ Heatmap ============
-  const heatOverlay = document.getElementById('heatOverlay');
   let heatCatId = null;
 
   function openHeatmap(catId){
     heatCatId = catId || state.categories[0].id;
-    renderHeatmap();
-    heatOverlay.classList.add('open');
+    switchView('heatmap');
   }
-  document.getElementById('openHeatmap').addEventListener('click', () => openHeatmap());
-  document.getElementById('closeHeatBtn').addEventListener('click', () => {
-    heatOverlay.classList.remove('open');
-  });
-  heatOverlay.addEventListener('click', (e) => {
-    if(e.target === heatOverlay){
-      heatOverlay.classList.remove('open');
-    }
-  });
 
   function renderHeatmap(){
     const selector = document.getElementById('heatSelector');
